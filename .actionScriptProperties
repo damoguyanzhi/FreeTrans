@@ -16,6 +16,7 @@
       <libraryPathEntry kind="1" linkType="1" path="assets"/>
       <libraryPathEntry kind="3" linkType="1" path="/CustomVideoPlayer/bin/CustomVideoPlayer.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="/SoundPlayer/bin/SoundPlayer.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/LangyanUtils/bin/LangyanUtils.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

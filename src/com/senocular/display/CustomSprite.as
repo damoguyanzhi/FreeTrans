@@ -26,6 +26,12 @@ package com.senocular.display
 		public var isShowTurnBox:Boolean;
 		public var isMc:Boolean;//里面存放的是movieclip
 		public var mc:MovieClip;
+		public var isBm:Boolean=false;
+		/**已经选中*/
+		public var isChoose:Boolean=false;
+		
+		/**标示code*/
+		public var code:String;
 		public function CustomSprite()
 		{
 			super();

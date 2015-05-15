@@ -11,12 +11,13 @@ package com.senocular.display
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.filters.DisplacementMapFilter;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
+	
+	import langyan.utils.DelayUtil;
 	
 	import org.flexlite.domUI.components.Button;
 	import org.flexlite.domUI.components.CheckBox;
@@ -24,7 +25,6 @@ package com.senocular.display
 	import org.flexlite.domUI.components.Group;
 	import org.flexlite.domUI.components.Label;
 	import org.flexlite.domUI.components.TextArea;
-	import org.flexlite.domUI.components.UIAsset;
 	import org.flexlite.domUI.core.UIComponent;
 	import org.flexlite.domUI.layouts.VerticalLayout;
 	
@@ -51,9 +51,13 @@ package com.senocular.display
 		private var __isShowScaleBtn:Boolean=false;
 		private var _isShowRegisterBtn:Boolean=false;
 		public var customTool:TransformTool = new TransformTool();
-		public function FreeTrans()
+		/**控制全屏*/
+		private var _controlFull:Function;
+		public function FreeTrans(func:Function)
 		{
 			super();
+			_controlFull=func;
+			this.doubleClickEnabled=true;
 			init();
 		}
 		
@@ -78,6 +82,7 @@ package com.senocular.display
 				customSprite.mc=display as MovieClip;
 				customSprite.mc.gotoAndStop(0);
 				customSprite.isMc=true;
+				customSprite.type="mc";
 				customSprite.addChild(display);
 				
 				_sonBox.addChild(customSprite);
@@ -91,6 +96,7 @@ package com.senocular.display
 			{
 				bm=new Bitmap(photography(display));
 				customSprite.addChild(bm);
+				customSprite.type="bm";
 				_sonBox.addChild(customSprite);
 			}
 			else if(display is TextArea)
@@ -155,8 +161,6 @@ package com.senocular.display
 			}
 			else
 			{
-				display.width
-				customSprite.width
 				customSprite.addChild(display);
 				_sonBox.addChild(customSprite);
 			}
@@ -172,7 +176,6 @@ package com.senocular.display
 				customSprite.type=type;
 				customSprite.addEventListener(MouseEvent.MOUSE_DOWN,chooseSpecialHandler);
 			}
-			
 			if(isMiddle)
 			{
 				customSprite.x=(this.width-display.width)/2;
@@ -183,18 +186,24 @@ package com.senocular.display
 				customSprite.x=x;
 				customSprite.y=y;
 			}
-			
+		}
+		
+		/**开始全屏显示*/
+		private function beginFullScreen(customSprite:CustomSprite):void
+		{
+			var dataVO:Object=new Object;
+			dataVO.type=customSprite.type;
+			dataVO.content=customSprite.getChildAt(0);
+			_controlFull(dataVO);
 		}
 		
 		/**选择 了包含视频，音频的容器*/
 		private function chooseSpecialHandler(event:MouseEvent):void
 		{
-			trace(event.target);
 			var sprite:Sprite;
 			sprite=event.currentTarget as Sprite;
 			_curSprite=event.currentTarget as CustomSprite;
 			currTool.target=sprite;
-			//currTool.mouseEnabled=true;
 			toolInit();
 		}
 		
@@ -238,7 +247,6 @@ package com.senocular.display
 			this.addEventListener(Event.ADDED_TO_STAGE,addStageHandler);
 		}
 		
-		
 		private function addStageHandler(event:Event):void
 		{
 			this.removeEventListener(Event.ADDED_TO_STAGE,addStageHandler);
@@ -246,11 +254,14 @@ package com.senocular.display
 			this.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN,addMenuHandler);
 		}
 		
+		
+		private var _curChooseSprite:CustomSprite;
 		private function select(event:MouseEvent):void 
 		{
 			var sprite:Sprite;
 			var box:Sprite;
 			var point:Point=new Point;
+			trace("select",event.target);
 			if(this.containsElement(_btnMenu))
 			{
 				this.removeElement(_btnMenu);
@@ -259,25 +270,36 @@ package com.senocular.display
 			{
 				currTool.target=null;
 			}
-			else if(event.target is Button)
-			{
-				
-			}
 			else if (event.target is CustomSprite) 
 			{
 				var customSprite:CustomSprite=event.target as CustomSprite;
+				
 				sprite=event.target as Sprite;
 				currTool.target=sprite;
 				point.x=customSprite.width/2;
 				point.y=customSprite.height/2;
-				trace("point:",point.x,point.y);
 				toolInit(point);
 				
 				_curSprite=event.target as CustomSprite;
-				
-				if(_curSprite.type=="video")
+				_curSprite.isChoose=true;
+			}
+			//全屏设置
+			else if(event.target.parent.parent.parent is TransformTool)
+			{
+				return;
+				var tool:TransformTool=event.target.parent.parent.parent as TransformTool;
+				var curSprite:CustomSprite=(tool.target) as CustomSprite;
+				_curChooseSprite=curSprite;
+				if(curSprite.isChoose)
 				{
-					trace(_curSprite.type);
+					trace("fullScreenHandler");
+					beginFullScreen(curSprite);
+					curSprite.isChoose=false;
+					trace("choose");
+				}
+				else
+				{
+					curSprite.isChoose=true;
 				}
 			}
 		}
